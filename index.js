@@ -13,7 +13,7 @@ const path = require("path");
 require("./db/database_connection");
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 app.use(express.json());
 app.use(cors({ origin: "*" }));
 
@@ -187,8 +187,6 @@ app.post("/add-travel-story", authenticateToken, async (req, res) => {
 
 // Get all Travel Story
 app.get("/get-all-stories", authenticateToken, async (req, res) => {
-
-  
   const { userId } = req.user;
 
   try {
@@ -206,8 +204,6 @@ app.put("/edit-stories/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
   const { title, story, visitedLocation, imageUrl, visitedDate } = req.body;
   const { userId } = req.user;
-
-
 
   // Convert visitedDate from millisecond to date oject
   const parsedVisitedDate = new Date(parseInt(visitedDate));
@@ -227,7 +223,7 @@ app.put("/edit-stories/:id", authenticateToken, async (req, res) => {
     travelStory.title = title;
     travelStory.story = story;
     travelStory.visitedDate = visitedDate;
-    travelStory.imageUrl = imageUrl ;
+    travelStory.imageUrl = imageUrl;
     travelStory.visitedLocation = visitedLocation;
 
     await travelStory.save();
@@ -333,20 +329,20 @@ app.get("/search", authenticateToken, async (req, res) => {
 
 // Filter travel story by date range
 app.get("/travel-stories/filter", authenticateToken, async (req, res) => {
-    const {startDate, endDate} = req.query
-    const { userId} = req.user
+  const { startDate, endDate } = req.query;
+  const { userId } = req.user;
 
-   try {
-    const start = new Date(parseInt(startDate))
-    const end = new Date(parseInt(endDate))
+  try {
+    const start = new Date(parseInt(startDate));
+    const end = new Date(parseInt(endDate));
     // find travel stories that belong to the authenticated user
     const filteredStories = await TravelStory.find({
-        userId:userId,
-        visitedDate:{$gte:start,$lte:end}, 
-    }).sort({isFavourite:-1})
-    res.status(200).json({stories:filteredStories})
-   } catch (error) {
+      userId: userId,
+      visitedDate: { $gte: start, $lte: end },
+    }).sort({ isFavourite: -1 });
+    res.status(200).json({ stories: filteredStories });
+  } catch (error) {
     res.status(400).json({ error: true, message: error.message });
-   }
-})
+  }
+});
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
